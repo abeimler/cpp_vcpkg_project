@@ -6,8 +6,7 @@ target_link_libraries(
   PRIVATE my_lib
           project_warnings
           project_options
-          Catch2::Catch2)
-target_compile_definitions(my_lib_constexpr_tests PRIVATE CATCH_CONFIG_MAIN DO_NOT_USE_WMAIN)
+          Catch2::Catch2 Catch2::Catch2WithMain)
 
 catch_discover_tests(my_lib_constexpr_tests ${COVERAGE_ARGS})
 
@@ -20,8 +19,7 @@ target_link_libraries(
   PRIVATE my_lib
           project_warnings
           project_options
-          Catch2::Catch2)
-target_compile_definitions(my_lib_relaxed_constexpr_tests PRIVATE CATCH_CONFIG_MAIN DO_NOT_USE_WMAIN)
-target_compile_definitions(my_lib_relaxed_constexpr_tests PRIVATE -DCATCH_CONFIG_RUNTIME_STATIC_REQUIRE)
+          Catch2::Catch2 Catch2::Catch2WithMain)
+target_compile_definitions(my_lib_relaxed_constexpr_tests PRIVATE CATCH_CONFIG_RUNTIME_STATIC_REQUIRE)
 
 catch_discover_tests(my_lib_relaxed_constexpr_tests ${COVERAGE_ARGS})

@@ -22,5 +22,11 @@ set(my_exe_LINKED_LIBRARIES fmt::fmt)
 target_link_system_libraries(my_exe PRIVATE ${my_exe_LINKED_LIBRARIES})
 
 if(FEATURE_TESTS)
-  add_subdirectory("./test")
+  add_subdirectory(test)
 endif()
+
+
+# misc
+set_target_properties(my_exe PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+# set the startup project for the "play" button in MSVC
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT my_exe)

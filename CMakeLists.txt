@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20...3.24)
 
-# set a default CXX standard for the tools and targets that do not specify them.
-# If commented, the latest supported standard for your compiler is automatically set.
-# set(CMAKE_CXX_STANDARD 20)
+# Not ideal to use this global variable, but necessary to make sure that tooling and projects use the same version
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 99)
+
+# strongly encouraged to enable this globally to avoid conflicts between -Wpedantic being enabled and -std=c++20 and -std=gnu++20 for
+# example when compiling with PCH enabled
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_C_EXTENSIONS ON)
 
 
 # Add project_options
@@ -22,6 +27,22 @@ endif()
 
 # Define the features of the project
 include("./Features.cmake")
+get_property(BUILDING_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(BUILDING_MULTI_CONFIG)
+  if(NOT CMAKE_BUILD_TYPE)
+    # Make sure that all supported configuration types have their associated conan packages available. You can reduce this list to only the
+    # configuration types you use, but only if one is not forced-set on the command line for VS
+    message(TRACE "Setting up multi-config build types")
+    set(CMAKE_CONFIGURATION_TYPES
+        Debug Release RelWithDebInfo MinSizeRel
+        CACHE STRING "Enabled build types" FORCE)
+  else()
+    message(TRACE "User chose a specific build type, so we are using that")
+    set(CMAKE_CONFIGURATION_TYPES
+        ${CMAKE_BUILD_TYPE}
+        CACHE STRING "Enabled build types" FORCE)
+  endif()
+endif()
 
 # enable cross-compiling: - should be called before run_vcpkg()
 if(ENABLE_CROSS_COMPILING)
@@ -33,35 +54,49 @@ run_vcpkg()
 # Set the project name and language
 project(
   cpp_vcpkg_project
-  VERSION 0.0.1
+  VERSION 0.1.0
   DESCRIPTION ""
   HOMEPAGE_URL "https://github.com/cpp-best-practices/cpp_vcpkg_project"
   LANGUAGES CXX C)
+include(cmake/PreventInSourceBuilds.cmake)
 
-# enable sanitizers and clang-tidy if running the tests
+# This is a list of headers to pre-compile, here are some common ones
+set(PCH_HEADERS
+    <fmt/core.h>
+    <vector>
+    <utility>
+    <string>
+    <string_view>)
+
 set(ENABLE_CLANG_TIDY OFF)
 set(ENABLE_CPPCHECK OFF)
 set(ENABLE_SANITIZER_ADDRESS OFF)
 set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR OFF)
 set(ENABLE_COVERAGE OFF)
-
-if(FEATURE_TESTS)
+set(ENABLE_INCLUDE_WHAT_YOU_USE OFF)
+if(ENABLE_CHECKING)
   set(ENABLE_CLANG_TIDY "ENABLE_CLANG_TIDY")
   set(ENABLE_CPPCHECK "ENABLE_CPPCHECK")
-  set(ENABLE_COVERAGE "ENABLE_COVERAGE")
-  enable_testing()
+  set(ENABLE_INCLUDE_WHAT_YOU_USE "ENABLE_INCLUDE_WHAT_YOU_USE")
+endif()
+if(ENABLE_CHECKING_INCLUDE_WHAT_YOU_USE)
+  set(ENABLE_INCLUDE_WHAT_YOU_USE "ENABLE_INCLUDE_WHAT_YOU_USE")
+endif()
+if(FEATURE_TESTS)
+  if(NOT DEFINED OPT_ENABLE_COVERAGE)
+    set(ENABLE_COVERAGE "ENABLE_COVERAGE")
+  endif()
 
-  if(NOT
-     "${CMAKE_SYSTEM_NAME}"
-     STREQUAL
-     "Windows")
-    set(ENABLE_SANITIZER_ADDRESS "ENABLE_SANITIZER_ADDRESS")
-    set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR "ENABLE_SANITIZER_UNDEFINED_BEHAVIOR")
-  else()
-    # or it is MSVC and has run vcvarsall
-    string(FIND "$ENV{PATH}" "$ENV{VSINSTALLDIR}" index_of_vs_install_dir)
-    if(MSVC AND "${index_of_vs_install_dir}" STREQUAL "-1")
+  if(NOT DISABLE_SANITIZER)
+    if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
       set(ENABLE_SANITIZER_ADDRESS "ENABLE_SANITIZER_ADDRESS")
+      set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR "ENABLE_SANITIZER_UNDEFINED_BEHAVIOR")
+    else()
+      # or it is MSVC and has run vcvarsall
+      string(FIND "$ENV{PATH}" "$ENV{VSINSTALLDIR}" index_of_vs_install_dir)
+      if(MSVC AND "${index_of_vs_install_dir}" STREQUAL "-1")
+        set(ENABLE_SANITIZER_ADDRESS "ENABLE_SANITIZER_ADDRESS")
+      endif()
     endif()
   endif()
 endif()
@@ -79,6 +114,8 @@ project_options(
   ENABLE_CACHE
   ${ENABLE_CPPCHECK}
   ${ENABLE_CLANG_TIDY}
+  ${ENABLE_INCLUDE_WHAT_YOU_USE}
+  ENABLE_VS_ANALYSIS
   # ENABLE_INTERPROCEDURAL_OPTIMIZATION
   # ENABLE_NATIVE_OPTIMIZATION
   ${ENABLE_DOXYGEN}
@@ -90,46 +127,73 @@ project_options(
   # ENABLE_SANITIZER_MEMORY
   # ENABLE_PCH
   # PCH_HEADERS
+  # ${PCH_HEADERS}
   # WARNINGS_AS_ERRORS
   # ENABLE_INCLUDE_WHAT_YOU_USE
   # ENABLE_USER_LINKER
   # ENABLE_BUILD_WITH_TIME_TRACE
   # ENABLE_UNITY
+  CPPCHECK_OPTIONS
+  --enable=style,performance,warning,portability
+  --inline-suppr
+  # We cannot act on a bug/missing feature of cppcheck
+  --suppress=cppcheckError
+  --suppress=internalAstError
+  # if a file does not have an internalAstError, we get an unmatchedSuppression error
+  --suppress=unmatchedSuppression
+  --suppress=passedByValue
+  --suppress=syntaxError
+  --suppress=*:${CMAKE_BINARY_DIR}/_deps/*
+  --inconclusive
 )
+include(cmake/MoreProjectOptions.cmake)
 
-add_subdirectory(./my_exe)
-add_subdirectory(./my_lib)
-add_subdirectory(./my_header_lib)
+# ---- Add dependencies via CPM ----
+# see https://github.com/TheLartians/CPM.cmake for more info
+include(cmake/CPM.cmake)
+# PackageProject.cmake will be used to make our target installable
+cpmaddpackage("gh:TheLartians/PackageProject.cmake@1.9.0")
+cpmaddpackage(
+  NAME
+  Format.cmake
+  VERSION
+  1.7.3
+  GITHUB_REPOSITORY
+  TheLartians/Format.cmake
+  OPTIONS
+  # set to yes skip cmake formatting
+  "FORMAT_SKIP_CMAKE NO"
+  # path to exclude (optional, supports regular expressions)
+  "CMAKE_FORMAT_EXCLUDE libs|resources")
 
-# the variables set using CACHE STRING "" are passed to package_project
 
-# Package the project
-package_project(
-  TARGETS
-  my_exe
-  my_lib
-  my_header_lib
-  project_options
-  project_warnings
-  INTERFACE_DEPENDENCIES_CONFIGURED
-  ${my_header_lib_DEPENDENCIES_CONFIGURED}
-  INTERFACE_INCLUDES
-  ${my_header_lib_INCLUDE_DIR}
-  PUBLIC_INCLUDES
-  ${my_lib_INCLUDE_DIR})
+
+# ##########################################################################################################################################
+# Project
+# ##########################################################################################################################################
+
+# add configure files
+configure_file("${PROJECT_SOURCE_DIR}/config/Version.h.in" "${PROJECT_BINARY_DIR}/include/Version.h" @ONLY)
+  
+if(FEATURE_TESTS)
+  # This variable is set by project() in CMake 3.21+
+  string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}" PROJECT_IS_TOP_LEVEL)
+  if(PROJECT_IS_TOP_LEVEL)
+    # Consider the CTest module, which creates targets and options! Only needed if you want to enable submissions to a CDash server.
+    include(CTest)
+  endif()
+  enable_testing()
+endif()
+
+add_subdirectory(src)
 
 if(FEATURE_FUZZ_TESTS)
   add_subdirectory(fuzz_test)
 endif()
 
-# set the startup project for the "play" button in MSVC
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT my_exe)
-
-# Experience shows that explicit package naming can help make it easier to sort
-# out potential ABI related issues before they start, while helping you
-# track a build to a specific GIT SHA
-set(CPACK_PACKAGE_FILE_NAME
-    "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${GIT_SHORT_SHA}-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_TYPE}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}"
-)
-
-include(CPack)
+# If MSVC is being used, and ASAN is enabled, we need to set the debugger environment so that it behaves well with MSVC's debugger, and we
+# can run the target from visual studio
+if(MSVC)
+  get_all_targets(all_targets)
+  set_target_properties(${all_targets} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=$(VC_ExecutablePath_x64);%PATH%")
+endif()
