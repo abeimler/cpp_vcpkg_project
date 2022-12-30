@@ -16,8 +16,4 @@ target_link_libraries(
           project_options
           Catch2::Catch2 Catch2::Catch2WithMain
           ${my_exe_LINKED_LIBRARIES})
-
-# use xml reporter if coverage is enabled
-if(${ENABLE_COVERAGE})
-  set(COVERAGE_ARGS REPORTER xml)
-endif()
+          

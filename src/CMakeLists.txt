@@ -1,8 +1,24 @@
+if(FEATURE_TESTS)
+  #find_package(GTest CONFIG REQUIRED)
+  find_package(Catch2 CONFIG REQUIRED)
+  include(Catch)
+  # FIXME: "xml" is not a valid reporter!
+  # use xml reporter if coverage is enabled
+  #if(${ENABLE_COVERAGE})
+  #  set(CATCH_DISCOVER_TESTS_ARGS REPORTER xml)
+  #endif()
+endif()
+if(FEATURE_BENCHMARKS)
+  find_package(benchmark CONFIG REQUIRED)
+endif()
+
+# NOTE: add more sub projects here
 add_subdirectory(my_header_lib)
 add_subdirectory(my_lib)
 add_subdirectory(my_exe)
 
 
+# install
 if(CMAKE_SKIP_INSTALL_RULES)
   return()
 elseif(NOT PROJECT_IS_TOP_LEVEL)
