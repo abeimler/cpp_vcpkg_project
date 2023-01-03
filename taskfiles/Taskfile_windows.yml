@@ -1,0 +1,20 @@
+version: 3
+
+tasks:
+  # Run with coverage analysis
+  coverage-template:
+    cmds:
+      # Set --sources "your_source_folder\*" and --filter "your_source_folder/" to have a clean coverage report
+      - OpenCppCoverage.exe --export_type html:./build/coverage --export_type cobertura:./build/coverage.xml --cover_children --sources "src\my_exe\*" --sources "src\my_lib\*" --sources "src\my_header_lib\*" --modules "build\*" -- task run_template
+      - powershell -c "if (!\$env:CI) { echo '[info] Opening ./build/coverage/index.html...'; start ./build/coverage/index.html }"
+    env:
+      CMAKE_BUILD_TYPE: "{{.CMAKE_BUILD_TYPE}}"
+
+  lint:
+    - powershell -c '$files=(git ls-files --exclude-standard); foreach ($file in $files) { if ((get-item $file).Extension -in ".cpp", ".hpp", ".c", ".cc", ".cxx", ".hxx", ".ixx") { clang-format -i -style=file $file } }'
+    - powershell -c '$files=(git ls-files --exclude-standard); foreach ($file in $files) { $item=(get-item $file); if (($item.Name -eq "CMakeLists.txt") -or ($item.Extension -in ".cmake")) { cmake-format --in-place $file; cmake-lint $file --disabled-codes C0103 C0301 R0912 R0915 R0913 --suppress-decorations } }'
+    - ~/vcpkg/vcpkg format-manifest ./vcpkg.json
+    - npx -y cspell lint --no-progress --show-suggestions
+
+  clean:
+    - powershell -c 'function rmrf($file) { if (test-path $file) { rm -r -force $file }}; rmrf ./build; rmrf ./install'

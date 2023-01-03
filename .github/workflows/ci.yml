@@ -116,7 +116,7 @@ jobs:
 
       - name: Test release
         run: |
-          task test_release
+          task test:release
         env:
           CMAKE_GENERATOR: ${{matrix.CMAKE_GENERATOR}}
           GCOV: ${{matrix.GCOV}}
