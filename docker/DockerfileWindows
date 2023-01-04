@@ -9,6 +9,7 @@ RUN chmod +x /setup_cpp_linux
 
 # install cmake, ninja, and ccache
 RUN /setup_cpp_linux --llvm true --cmake true --ninja true --ccache true --cppcheck true --vcpkg true --conan true --task true --powershell true
+#RUN cp /root/.cpprc /root/.bashrc
 
 # install mingw (cross-compiler)
 RUN apt-get update && apt-get install -y \

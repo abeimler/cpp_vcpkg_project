@@ -5,11 +5,39 @@ ignorePaths:
   - pnpm-lock.yaml
   - .git/
   - dist/
+  - .gitignore
+  - .dockerignore
 useGitignore: true
 language: en, en-GB
 allowCompoundWords: true
 enableGlobDot: true
-words:
+words:  
+  - CPATH
+  - Cppcheck
+  - DCATCH
+  - DCMAKE
+  - DDEFAULT
+  - DDISABLE
+  - DFEATURE
+  - DontAlign
+  - Eigen
+  - FLTK
+  - GTKMM
+  - Hostx
+  - IMGUI
+  - IWYU
+  - Lartians
+  - NOSTDLIB
+  - Opencppcoverage
+  - PTRACE
+  - SFML
+  - SYSREQUIRES
+  - TLDR
+  - TOLOWER
+  - TOUPPER
+  - VSINSTALLDIR
+  - WMAIN
+  - Wpedantic
   - aminya
   - asan
   - ccache
@@ -25,58 +53,43 @@ words:
   - codeql
   - covertura
   - cpack
-  - CPATH
-  - Cppcheck
+  - cpmaddpackage
   - cppcoreguidelines
   - cpprc
   - cpptools
   - ctest
-  - DCATCH
-  - DCMAKE
   - dearmor
-  - DFEATURE
-  - DontAlign
   - eamodio
   - ehthumbs
-  - Eigen
-  - FLTK
   - fuzzer
   - gcov
   - gcovr
   - gedit
-  - GTKMM
-  - Hostx
+  - gtest
   - hwrap
   - ifeq
-  - IMGUI
+  - ifndef
+  - inline-suppr
   - inplace
-  - IWYU
   - kwargs
   - lldb
   - mkdir
   - msvc
   - myproject
+  - nostdlib
   - nothrow
   - nproc
-  - Opencppcoverage
   - pargs
   - pnpm
-  - PTRACE
   - pwsh
   - pylance
   - refreshenv
   - rmrf
-  - SFML
+  - rtti
   - socat
-  - SYSREQUIRES
-  - TLDR
-  - TOLOWER
-  - TOUPPER
   - twxs
   - vcpkg
   - vcvarsall
   - vcvarsallpath
-  - VSINSTALLDIR
   - vswhere
   - webp
-  - WMAIN

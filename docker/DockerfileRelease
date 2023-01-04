@@ -10,7 +10,7 @@ RUN chmod +x /setup_cpp_linux
 ARG compiler="gcc"
 # install cmake, ninja, and ccache
 RUN /setup_cpp_linux --compiler $compiler --llvm true --cmake true --ninja true --ccache true --cppcheck true --vcpkg true --conan true --task true
-RUN source ~/.cpprc
+#RUN cp /root/.cpprc /root/.bashrc
 
 WORKDIR /home/project
 ENV PROJECT_DIR /home/project

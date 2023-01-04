@@ -13,11 +13,11 @@ tasks:
     dir: "{{.PROJECT_DIR}}"
     cmds:
       - >
-        cmake -S . -B build -G '{{.CMAKE_GENERATOR | default "Ninja Multi-Config"}}' -DCMAKE_BUILD_TYPE:STRING={{.CMAKE_BUILD_TYPE}} 
-          -DFEATURE_TESTS:BOOL={{.FEATURE_TESTS | default "OFF"}} 
-          -DFEATURE_FUZZ_TESTS:BOOL={{.FEATURE_FUZZ_TESTS | default "OFF"}} 
-          -DFEATURE_CONSTEXPR_TESTS:BOOL={{.FEATURE_CONSTEXPR_TESTS | default "OFF"}}
-          -DFEATURE_DOCS:BOOL={{.FEATURE_DOCS | default "OFF"}} 
+        cmake -S . -B build -G '{{.CMAKE_GENERATOR | default "Ninja Multi-Config"}}' -DCMAKE_BUILD_TYPE:STRING={{.CMAKE_BUILD_TYPE}} \
+          -DFEATURE_TESTS:BOOL={{.FEATURE_TESTS | default "OFF"}} \
+          -DFEATURE_FUZZ_TESTS:BOOL={{.FEATURE_FUZZ_TESTS | default "OFF"}} \
+          -DFEATURE_CONSTEXPR_TESTS:BOOL={{.FEATURE_CONSTEXPR_TESTS | default "OFF"}}\
+          -DFEATURE_DOCS:BOOL={{.FEATURE_DOCS | default "OFF"}} \
           {{.CONFIGURE_FLAGS}}
 
   build:
@@ -25,7 +25,6 @@ tasks:
       vars:
         FEATURE_TESTS: OFF
         CMAKE_BUILD_TYPE: Release
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=OFF
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Release
@@ -35,7 +34,6 @@ tasks:
       vars:
         FEATURE_TESTS: OFF
         CMAKE_BUILD_TYPE: Debug
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=OFF
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Debug
@@ -45,7 +43,7 @@ tasks:
       vars:
         FEATURE_TESTS: OFF
         CMAKE_BUILD_TYPE: Release
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=OFF -DDISABLE_SANITIZER:BOOL=ON
+        CONFIGURE_FLAGS: -DDISABLE_SANITIZER:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Release
@@ -55,7 +53,7 @@ tasks:
       vars:
         FEATURE_TESTS: OFF
         CMAKE_BUILD_TYPE: Release
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=OFF -DDISABLE_SANITIZER:BOOL=ON -DENABLE_CROSS_COMPILING:BOOL=ON -DDEFAULT_TRIPLET=x64-mingw-dynamic
+        CONFIGURE_FLAGS: -DDISABLE_SANITIZER:BOOL=ON -DENABLE_CROSS_COMPILING:BOOL=ON -DDEFAULT_TRIPLET=x64-mingw-dynamic
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Release
@@ -69,40 +67,42 @@ tasks:
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: Debug
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Debug
     - task: test-template
+      vars:
+        CMAKE_BUILD_TYPE: Debug
 
   test:relwithdebinfo:
     - task: configure
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: RelWithDebInfo
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: RelWithDebInfo
     - task: test-template
+      vars:
+        CMAKE_BUILD_TYPE: RelWithDebInfo
 
   test:release:
     - task: configure
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: Release
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Release
     - task: test-template
+      vars:
+        CMAKE_BUILD_TYPE: Release
 
   coverage:
     - task: configure
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: Debug
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=ON -DENABLE_DEVELOPER_MODE:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Debug
@@ -110,45 +110,54 @@ tasks:
       vars:
         CMAKE_BUILD_TYPE: Debug
     - task: coverage-template
+      vars:
+        CMAKE_BUILD_TYPE: Debug
 
   test:without-sanitizer:
     - task: configure
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: Debug
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=ON -DDISABLE_SANITIZER:BOOL=ON
+        CONFIGURE_FLAGS: -DDISABLE_SANITIZER:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Debug
     - task: test-template
+      vars:
+        CMAKE_BUILD_TYPE: Debug
 
   test:relwithdebinfo:without-sanitizer:
     - task: configure
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: RelWithDebInfo
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=ON -DDISABLE_SANITIZER:BOOL=ON
+        CONFIGURE_FLAGS: -DDISABLE_SANITIZER:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: RelWithDebInfo
     - task: test-template
+      vars:
+        CMAKE_BUILD_TYPE: RelWithDebInfo
 
   test:release:without-sanitizer:
     - task: configure
       vars:
         FEATURE_TESTS: ON
         CMAKE_BUILD_TYPE: Release
-        CONFIGURE_FLAGS: -DOPT_ENABLE_COVERAGE:BOOL=OFF -DENABLE_DEVELOPER_MODE:BOOL=ON -DDISABLE_SANITIZER:BOOL=ON
+        CONFIGURE_FLAGS: -DDISABLE_SANITIZER:BOOL=ON
     - task: build-template
       vars:
         CMAKE_BUILD_TYPE: Release
     - task: test-template
+      vars:
+        CMAKE_BUILD_TYPE: Release
 
   docs:
     - task: build-template
       vars:
-        CMAKE_BUILD_TYPE: Debug
+        FEATURE_TESTS: OFF
         FEATURE_DOCS: ON
+        CMAKE_BUILD_TYPE: Debug
         BUILD_FLAGS: --target doxygen-docs
 
   # The templates called in the other tasks. The variables can be set using the `vars` parameter or by environment variables. To create global variables that are passed to the internally called templates, use `env`
@@ -164,9 +173,7 @@ tasks:
     dir: "{{.PROJECT_DIR}}"
     internal: true
     cmds:
-      - cd build/src/my_exe/test && ctest -C {{.CMAKE_BUILD_TYPE}} --output-on-failure
-      - cd build/src/my_header_lib/test && ctest -C {{.CMAKE_BUILD_TYPE}} --output-on-failure
-      - cd build/src/my_lib/test && ctest -C {{.CMAKE_BUILD_TYPE}} --output-on-failure
+      - ctest --build-test --test-dir build -C {{.CMAKE_BUILD_TYPE}} 
 
   # Run with coverage analysis
   coverage-template:
@@ -180,11 +187,20 @@ tasks:
     env:
       CMAKE_BUILD_TYPE: "{{.CMAKE_BUILD_TYPE}}"
 
-  lint:
-    - git ls-files --exclude-standard | grep -E '\.(cpp|hpp|c|cc|cxx|hxx|ixx)$' | xargs clang-format -i -style=file
-    - git ls-files --exclude-standard | grep -E '(CMakeLists\.txt)|(\.(cmake))$' | xargs cmake-format --in-place | xargs cmake-lint --disabled-codes C0103 C0301 R0912 R0915 R0913 --suppress-decorations
+  format:
+    - cmake --build build --target fix-format
     - ~/vcpkg/vcpkg format-manifest ./vcpkg.json
+
+  lint:
+    - cmake --build build --target check-format
+    #- git ls-files --exclude-standard | grep -E '\.(cpp|hpp|c|cc|cxx|hxx|ixx)$' | xargs clang-format -i -style=file
+    #- git ls-files --exclude-standard | grep -E '(CMakeLists\.txt)|(\.(cmake))$' | xargs cmake-format --in-place | xargs cmake-lint --disabled-codes C0103 C0301 R0912 R0915 R0913 --suppress-decorations
     - npx -y cspell lint --no-progress --show-suggestions
 
   clean:
     - rm -rf ./build ./install
+
+  default:
+    dir: "{{.PROJECT_DIR}}"
+    cmds:
+      - task: test

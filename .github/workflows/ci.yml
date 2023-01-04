@@ -8,7 +8,6 @@ on:
       - main
       - develop
       - master
-      - feature/ci
 
 jobs:
   Test:
@@ -131,7 +130,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         if: ${{ contains(matrix.os, 'ubuntu') && contains(matrix.compiler, 'llvm') }}
-        uses: github/codeql-action/analyze@v1
+        uses: github/codeql-action/analyze@v2
 
       - name: Publish Tagged Release
         uses: softprops/action-gh-release@v1
@@ -141,6 +140,7 @@ jobs:
             build/*-*Release*-*.*
 
       - name: Publish to codecov
+        if: ${{ contains(matrix.task, 'coverage') }}
         uses: codecov/codecov-action@v2
         with:
           flags: ${{ runner.os }}
