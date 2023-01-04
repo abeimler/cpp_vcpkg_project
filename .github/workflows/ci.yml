@@ -141,6 +141,7 @@ jobs:
             build/*-*Release*-*.*
 
       - name: Publish to codecov
+        if: ${{ contains(matrix.task, 'coverage') }}
         uses: codecov/codecov-action@v2
         with:
           flags: ${{ runner.os }}
