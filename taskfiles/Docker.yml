@@ -1,0 +1,43 @@
+version: '3'
+
+tasks:
+  build:
+    - docker compose -f ./docker/docker-compose.yml up --build build
+
+  build:debug:
+    - docker compose -f ./docker/docker-compose-debug.yml up --build build-debug
+
+  build:release:
+    - docker compose -f ./docker/docker-compose-release.yml up --build build-release
+
+  build:cross:mingw:
+    - docker compose -f ./docker/docker-compose-windows.yml up --build build-windows
+
+  test:
+    - docker compose -f ./docker/docker-compose.yml up --build test
+
+  test:debug:
+    - docker compose -f ./docker/docker-compose-debug.yml up --build test-debug
+
+  test:release:
+    - docker compose -f ./docker/docker-compose-release.yml up --build test-release
+
+  test:without-sanitizer:
+    - docker compose -f ./docker/docker-compose.yml up --build test-without-sanitizer
+
+  test:debug:without-sanitizer:
+    - docker compose -f ./docker/docker-compose-debug.yml up --build test-debug-without-sanitizer
+
+  test:release:without-sanitizer:
+    - docker compose -f ./docker/docker-compose-release.yml up --build test-release-without-sanitizer
+
+  coverage:
+    - docker compose -f ./docker/docker-compose.yml up --build coverage
+
+  lint:
+    - docker compose -f ./docker/docker-compose.yml up --build lint
+
+  rm:
+    - docker compose -f ./docker/docker-compose.yml down
+    - docker compose -f ./docker/docker-compose-debug.yml down
+    - docker compose -f ./docker/docker-compose-release.yml down

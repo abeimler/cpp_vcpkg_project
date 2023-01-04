@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  build-release:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileRelease
+      target: build-release
+  test-release:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileRelease
+      target: test-release
+  test-release-without-sanitizer:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileRelease
+      target: test-release-without-sanitizer

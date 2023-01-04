@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  build-windows:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileWindows
+      target: build-windows

@@ -1,0 +1,29 @@
+## base image
+FROM ubuntu:22.04 AS windows-base
+
+ARG setup_cpp_linux_version="0.24.1"
+
+# add setup_cpp https://github.com/aminya/setup-cpp
+ADD https://github.com/aminya/setup-cpp/releases/download/v${setup_cpp_linux_version}/setup_cpp_linux /setup_cpp_linux
+RUN chmod +x /setup_cpp_linux
+
+# install cmake, ninja, and ccache
+RUN /setup_cpp_linux --llvm true --cmake true --ninja true --ccache true --cppcheck true --vcpkg true --conan true --task true --powershell true
+
+# install mingw (cross-compiler)
+RUN apt-get update && apt-get install -y \
+    mingw-w64 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /home/project
+ENV PROJECT_DIR /home/project
+
+CMD source ~/.cpprc
+COPY ./docker/entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
+
+
+## build stage (for windows build)
+FROM windows-base as build-windows
+COPY . .
+CMD  ["task", "build:cross:mingw"]

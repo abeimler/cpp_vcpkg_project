@@ -1,0 +1,6 @@
+build/
+install/
+out/
+cmake-build-*/
+conan-cache/
+.cache/

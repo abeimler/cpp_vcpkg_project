@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  build-debug:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileDebug
+      target: build-debug
+  test-debug:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileDebug
+      target: test-debug
+  test-debug-without-sanitizer:
+    build:
+      context: ..
+      dockerfile: ./docker/DockerfileDebug
+      target: test-debug-without-sanitizer
