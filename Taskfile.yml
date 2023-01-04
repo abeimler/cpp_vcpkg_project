@@ -187,10 +187,14 @@ tasks:
     env:
       CMAKE_BUILD_TYPE: "{{.CMAKE_BUILD_TYPE}}"
 
-  lint:
-    - git ls-files --exclude-standard | grep -E '\.(cpp|hpp|c|cc|cxx|hxx|ixx)$' | xargs clang-format -i -style=file
-    - git ls-files --exclude-standard | grep -E '(CMakeLists\.txt)|(\.(cmake))$' | xargs cmake-format --in-place | xargs cmake-lint --disabled-codes C0103 C0301 R0912 R0915 R0913 --suppress-decorations
+  format:
+    - cmake --build build --target fix-format
     - ~/vcpkg/vcpkg format-manifest ./vcpkg.json
+
+  lint:
+    - cmake --build build --target check-format
+    #- git ls-files --exclude-standard | grep -E '\.(cpp|hpp|c|cc|cxx|hxx|ixx)$' | xargs clang-format -i -style=file
+    #- git ls-files --exclude-standard | grep -E '(CMakeLists\.txt)|(\.(cmake))$' | xargs cmake-format --in-place | xargs cmake-lint --disabled-codes C0103 C0301 R0912 R0915 R0913 --suppress-decorations
     - npx -y cspell lint --no-progress --show-suggestions
 
   clean:

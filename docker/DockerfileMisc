@@ -19,7 +19,7 @@ RUN python3 -m pip install cmake-format cmakelint
 RUN apt-get update && apt-get install -y \
     nodejs npm \
     && rm -rf /var/lib/apt/lists/*
-RUN npm i -g npx
+RUN npm i -g cspell npx
 
 WORKDIR /home/project
 ENV PROJECT_DIR /home/project
