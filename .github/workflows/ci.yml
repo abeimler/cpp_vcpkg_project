@@ -42,9 +42,9 @@ jobs:
         CPACK_GENERATOR:
           - ZIP
         task:
-          - test
+          - test:debug
           - test:release
-          - test:without-sanitizer
+          - test:debug:without-sanitizer
           - test:release:without-sanitizer
           - coverage
 
